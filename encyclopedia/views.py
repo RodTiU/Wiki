@@ -2,6 +2,7 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
 from django import forms
 from django.urls import reverse
+import random
 
 from . import util
 from markdown2 import Markdown
@@ -9,6 +10,11 @@ from markdown2 import Markdown
 
 class NewSearchForm(forms.Form):
     substring = forms.CharField(max_length=64, label="search")
+
+
+class NewEntryForm(forms.Form):
+    title = forms.CharField(max_length=64, label="title")
+    content = forms.CharField(widget=forms.Textarea)
 
 
 def index(request):
@@ -49,7 +55,7 @@ def form(request):
             for article in articles:
                 if article.lower().__contains__(search_string.lower()):
                     success_articles.append(article)
-            
+
             return render(
                 request,
                 "encyclopedia/search.html",
@@ -61,3 +67,37 @@ def form(request):
             return HttpResponseRedirect(reverse("index"))
     else:
         return HttpResponse("Error. Request POST method not found")
+
+
+def new_entry(request):
+    return render(request, "encyclopedia/new_entry.html")
+
+
+def new_entry_form(request):
+    if request.method == "POST":
+        form = NewEntryForm(request.POST)
+        if form.is_valid():
+            title = form.cleaned_data["title"]
+            markdown = form.cleaned_data["content"]
+
+            article = f"#{title}\n{markdown}"
+
+            open(f"./entries/{title}.md", "x")
+
+            with open(f"entries/{title}.md", "w") as file:
+                file.write(article)
+
+            return HttpResponseRedirect(reverse("index"))
+    else:
+        return HttpResponse("Error. Request POST method not found")
+
+
+def random_entry(request):
+    article_sample_size = len(util.list_entries())
+    random_article = util.list_entries()[random.randint(0, article_sample_size - 1)]
+    markdown = Markdown()
+    markdown_file = markdown.convert(util.get_entry(random_article))
+    return render(request, f"encyclopedia/article.html", {
+                      "article": random_article,
+                      "markdown_file": markdown_file,
+                  })
