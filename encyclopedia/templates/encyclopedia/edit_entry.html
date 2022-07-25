@@ -1,0 +1,15 @@
+
+{% extends 'encyclopedia/layout.html' %}
+
+{% block body %}
+    <h1>Edit {{ title }} Article</h1>
+
+    {% block new_entry %}
+        <form  action="{% url 'form_edit' %}" method="post" id="form_edit" style="display: flex; flex-direction: column; gap: 10px; align-items: center; height: 83vh;">
+            {% csrf_token %}
+            <textarea name="content" form="form_edit" cols="30" rows="10" placeholder="Mardown Text">{{ article }}</textarea>
+            <input style="width: 20%; align-self: end; margin-right: 10%;" type="submit" value="Edit Data">
+        </form>
+    {% endblock new_entry %}
+
+{% endblock body %}

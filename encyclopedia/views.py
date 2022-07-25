@@ -1,11 +1,12 @@
 from django.http import HttpResponse, HttpResponseRedirect
-from django.shortcuts import render
+from django.shortcuts import redirect, render
 from django import forms
 from django.urls import reverse
-import random
-
 from . import util
 from markdown2 import Markdown
+import random
+import urllib.parse
+
 
 
 class NewSearchForm(forms.Form):
@@ -14,6 +15,10 @@ class NewSearchForm(forms.Form):
 
 class NewEntryForm(forms.Form):
     title = forms.CharField(max_length=64, label="title")
+    content = forms.CharField(widget=forms.Textarea)
+
+
+class EditForm(forms.Form):
     content = forms.CharField(widget=forms.Textarea)
 
 
@@ -92,12 +97,44 @@ def new_entry_form(request):
         return HttpResponse("Error. Request POST method not found")
 
 
+def edit_redirector(request, title):
+    file = open(f"./entries/{title}.md", "r")
+    data = str()
+    for line in file:
+        data += line
+    file.close()
+    return render(
+        request,
+        "encyclopedia/edit_entry.html",
+        {
+            "article": data,
+            "title": title,
+        },
+    )
+
+
+def send_edit_form(request):
+    if request.method == "POST":
+        form = EditForm(request.POST)
+        if form.is_valid():
+            content = form.cleaned_data["content"]
+            referrer_url = urllib.parse.unquote(request.META.get("HTTP_REFERER"))
+            title = referrer_url.split("/")[-1][:-1]
+            with open(f"./entries/{title}.md", "w+") as file:
+                file.write(content)
+            return HttpResponseRedirect(f"wiki/{title}")
+
+
 def random_entry(request):
     article_sample_size = len(util.list_entries())
     random_article = util.list_entries()[random.randint(0, article_sample_size - 1)]
     markdown = Markdown()
     markdown_file = markdown.convert(util.get_entry(random_article))
-    return render(request, f"encyclopedia/article.html", {
-                      "article": random_article,
-                      "markdown_file": markdown_file,
-                  })
+    return render(
+        request,
+        f"encyclopedia/article.html",
+        {
+            "title": random_article,
+            "markdown_file": markdown_file,
+        },
+    )
