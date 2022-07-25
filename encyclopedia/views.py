@@ -49,7 +49,7 @@ def title(request, title):
     )
 
 
-def form(request):
+def form_search(request):
     if request.method == "POST":
         form = NewSearchForm(request.POST)
         if form.is_valid():
