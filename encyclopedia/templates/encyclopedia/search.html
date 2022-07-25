@@ -1,0 +1,14 @@
+{% extends 'encyclopedia/layout.html' %}
+
+{% block body %}
+    <h1>Search Results</h1>
+    {% if articles %}
+        {% for article in articles %}
+            <li style="margin-left: 20px;"><a href="{% url 'title' article %}">{{ article }}</a></li>
+        {% endfor %}
+    {% else %}
+        <p>
+            No articles found.
+        </p>
+    {% endif %}
+{% endblock body %}
