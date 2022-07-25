@@ -1,0 +1,6 @@
+{% extends 'encyclopedia/layout_article.html' %}
+
+{% block title %}{{ title }}{% endblock title %}
+{% block body %}
+    {{ markdown_file | safe }}
+{% endblock body %}
